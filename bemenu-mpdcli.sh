@@ -99,10 +99,10 @@ operation() {
 
 while
   input=$( list | bemenu -p "󰎆 MPD ${mode^}$([[ $albumartist ]] && echo ": ${albumartist}")")
-    [[ -n "$input" ]]
+  [[ -n "$input" ]]
 do
-    if newmode "$input"; then continue; fi
-    if operation "$input"; then continue; fi
-    list_action "$input"
+  if newmode "$input"; then continue; fi
+  if operation "$input"; then continue; fi
+  list_action "$input"
 done
 
