@@ -70,11 +70,11 @@ list_action() {
 }
 
 newmode() {
-  if [[ "$1" =~ ^󰐑|^󰐑 ]]; then
+  if [[ "$1" =~ ^󰐑 ]]; then
     mode="queue"
-  elif [[ "$1" =~ ^󰲸|^󰲸 ]]; then
+  elif [[ "$1" =~ ^󰲸 ]]; then
     mode="playlists"
-  elif [[ "$1" =~ ^󰌱|^󰌱 ]]; then
+  elif [[ "$1" =~ ^󰌱 ]]; then
     mode="library"
     libmode="albumartist"
     albumartist=""
