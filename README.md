@@ -2,7 +2,7 @@
 
 A [bemenu](https://github.com/Cloudef/bemenu) client for [MPD](https://github.com/MusicPlayerDaemon/MPD) using [mpc](https://github.com/MusicPlayerDaemon/mpc). Control you local or remote Music Player Daemon from a simple and fast menu.
 
-![preview](assets/preview.gif)
+![preview](assets/preview.png)
 
 The preview uses my wrapper for bemenu: [bemenu-orange-wrapper](https://github.com/tkapias/bemenu-orange-wrapper).
 
