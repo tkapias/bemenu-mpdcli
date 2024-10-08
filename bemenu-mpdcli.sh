@@ -21,10 +21,11 @@
 # Useful for --host,--port,--partition
 # See man mpc
 mpc=(mpc --quiet "$@")
-
+bemenu=(bemenu)
 mode="queue"
 libmode="albumartist"
 albumartist=""
+input=""
 
 header() {
   local current
@@ -60,6 +61,7 @@ list_action() {
   elif [[ "$mode" == "library" ]] && [[ "$libmode" == "albumartist" ]]; then
     libmode="album"
     albumartist="$1"
+    bemenu+=(--index 6)
   elif [[ "$mode" == "library" ]] && [[ "$libmode" == "album" ]]; then
     "${mpc[@]}" clear
     "${mpc[@]}" find albumartist "$albumartist" album "$1" | sort | "${mpc[@]}" add
@@ -74,8 +76,10 @@ newmode() {
     mode="queue"
   elif [[ "$1" =~ ^󰲸 ]]; then
     mode="playlists"
+    bemenu+=(--index 6)
   elif [[ "$1" =~ ^󰌱 ]]; then
     mode="library"
+    bemenu+=(--index 6)
     libmode="albumartist"
     albumartist=""
   else
@@ -98,9 +102,10 @@ operation() {
 }
 
 while
-  input=$( list | bemenu -p "󰎆 MPD ${mode^}$([[ $albumartist ]] && echo ": ${albumartist}")")
+  input=$( list | "${bemenu[@]}" -p "󰎆 MPD ${mode^}$([[ $albumartist ]] && echo ": ${albumartist}")")
   [[ -n "$input" ]]
 do
+  bemenu=(bemenu)
   if newmode "$input"; then continue; fi
   if operation "$input"; then continue; fi
   list_action "$input"
