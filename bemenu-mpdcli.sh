@@ -17,7 +17,7 @@
 #
 #########################
 
-# ! arguments are transfered to mpc
+# ! all arguments are transfered to mpc
 # Useful for --host,--port,--partition
 # See man mpc
 mpc=(mpc --quiet "$@")
@@ -27,6 +27,7 @@ libmode="albumartist"
 albumartist=""
 input=""
 
+# 5 first lines for commands/modes
 header() {
   local current
   current="$("${mpc[@]}" current -f '[%title%|%file%][ (%albumartist%)]')"
@@ -37,6 +38,7 @@ header() {
   [[ "$mode" == "library"   ]] && echo -e "󰐑 Queue\n󰲸 Playlists"
 }
 
+# append a list from mpc depending on the mode
 list() {
   header
   if [[ "$mode" == "queue" ]]; then
@@ -50,6 +52,7 @@ list() {
   fi
 }
 
+# contextual mpc commands on selected line (not in header)
 list_action() {
   if [[ "$mode" == "queue" ]]; then
     "${mpc[@]}" play "${1%%	*}"
@@ -71,6 +74,7 @@ list_action() {
   fi
 }
 
+# switch modes from header lines
 newmode() {
   if [[ "$1" =~ ^󰐑 ]]; then
     mode="queue"
@@ -87,6 +91,7 @@ newmode() {
   fi
 }
 
+# mpc player commands from header lines
 operation() {
   if [[ "$1" =~ ^󰐎 ]]; then
     "${mpc[@]}" toggle
@@ -103,9 +108,9 @@ operation() {
 
 while
   input=$( list | "${bemenu[@]}" -p "󰎆 MPD ${mode^}$([[ $albumartist ]] && echo ": ${albumartist}")")
-  [[ -n "$input" ]]
+  [[ -n "$input" ]] # exit if bemenu quit
 do
-  bemenu=(bemenu)
+  bemenu=(bemenu) # reset to default --index=0
   if newmode "$input"; then continue; fi
   if operation "$input"; then continue; fi
   list_action "$input"
