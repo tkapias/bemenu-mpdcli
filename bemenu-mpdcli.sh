@@ -42,7 +42,8 @@ header() {
 list() {
   header
   if [[ "$mode" == "queue" ]]; then
-    "${mpc[@]}" playlist -f '%position%\t[%title%|%file%][ (%albumartist% - %album%)]'
+    "${mpc[@]}" playlist -f '%position%\t[%title%|%file%][\t(%albumartist% - %album%)]' \
+      | column --table --separator $'\t' --output-separator $'\t'
   elif [[ "$mode" == "playlists" ]]; then
     "${mpc[@]}" lsplaylists | awk 'NF' | sort -fu
   elif [[ "$mode" == "library" ]] && [[ "$libmode" == "albumartist" ]]; then
@@ -55,7 +56,7 @@ list() {
 # contextual mpc commands on selected line (not in header)
 list_action() {
   if [[ "$mode" == "queue" ]]; then
-    "${mpc[@]}" play "${1%%	*}"
+    "${mpc[@]}" play "${1%%[ 	]*}"
   elif [[ "$mode" == "playlists" ]]; then
     "${mpc[@]}" clear
     "${mpc[@]}" load "$1"
