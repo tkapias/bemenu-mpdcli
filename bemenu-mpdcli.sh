@@ -12,6 +12,7 @@
 #   Nerd-Fonts
 #   mpd
 #   mpc
+#   exiftool
 #   bash
 #   awk
 #
@@ -21,7 +22,7 @@ shopt -s extglob
 
 declare -f header list list_action new_mode operation
 declare -a mpc bemenu
-declare mode libmode albumartist input header_lines line_after_header
+declare mode libmode albumartist input header_lines line_after_header library_path
 
 # ! all arguments are transfered to mpc
 # Useful for --host,--port,--partition
@@ -32,18 +33,23 @@ mode="queue"
 libmode="albumartist"
 albumartist=""
 input=""
+# Music folder path for lyrics to work,
+# default to XDG_MUSIC_DIR if defined,
+# or by thevariable MPD_LIBRARY_PATH
+library_path="${MPD_LIBRARY_PATH:-$XDG_MUSIC_DIR}"
 
 # 5 first lines for commands/modes
-header_lines=5
+header_lines=6
 line_after_header=$(("$header_lines" + 1))
 header() {
 	local current
-	current="$("${mpc[@]}" current -f '[%title%|%file%][ (%albumartist%)]')"
+	current=$("${mpc[@]}" current -f '[%title%|%file%][ (%albumartist%)]')
 	[[ -n "$current" ]] && current=": $current"
 	echo -e "󰐎 Play/Pause$current\n󰓛 Stop\n󰒮 Previous\n󰒭 Next"
-	[[ "$mode" == "queue" ]] && echo -e "󰲸 Playlists\n󰌱 Library"
-	[[ "$mode" == "playlists" ]] && echo -e "󰐑 Queue\n󰌱 Library"
-	[[ "$mode" == "library" ]] && echo -e "󰐑 Queue\n󰲸 Playlists"
+	[[ "$mode" == "queue" ]] && echo -e "󰲸 Playlists\n󰌱 Library\n󰯂 Lyrics"
+	[[ "$mode" == "playlists" ]] && echo -e "󰐑 Queue\n󰌱 Library\n󰯂 Lyrics"
+	[[ "$mode" == "library" ]] && echo -e "󰐑 Queue\n󰲸 Playlists\n󰯂 Lyrics"
+	[[ "$mode" == "lyrics" ]] && echo -e "󰐑 Queue\n󰲸 Playlists\n󰌱 Library"
 }
 
 # append a list from mpc depending on the mode
@@ -58,6 +64,27 @@ list() {
 		"${mpc[@]}" list albumartist | awk 'NF' | sort -fu
 	elif [[ "$mode" == "library" ]] && [[ "$libmode" == "album" ]]; then
 		"${mpc[@]}" list album albumartist "$albumartist" | awk 'NF' | sort -fu
+	elif [[ "$mode" == "lyrics" ]]; then
+		local current lyrics
+		current="${library_path}/$("${mpc[@]}" current -f '%file%')"
+		# shellcheck disable=SC2016
+		[[ -f "$current" ]] && lyrics=$(exiftool -if '$SynchronizedLyricsText-xxx' -SynchronizedLyricsText-xxx -q -b "$current")
+		if [[ -n "$lyrics" ]] && [[ -f "$current" ]]; then
+			paste \
+				<(printf %s "$lyrics" | sed -r 's/^(\[[0-9\.]*\])(.*)$/\1/') \
+				<(printf %s "$lyrics" | sed 's/^\[[0-9\.]*\]//') |
+				column --table --separator $'\t'
+		elif [[ -f "$current" ]]; then
+			# shellcheck disable=SC2016
+			lyrics=$(exiftool -if '$Lyrics-xxx' -Lyrics-xxx -q -b "$current" | tr -d '\r')
+			if [[ -n "$lyrics" ]]; then
+				printf '%s' "$lyrics"
+			else
+				printf '%s' "󰌑 No Lyrics found in the file."
+			fi
+		else
+			printf '%s' "󰌑 No file to extract Lyrics."
+		fi
 	fi
 }
 
@@ -84,6 +111,19 @@ list_action() {
 		libmode="albumartist"
 		albumartist=""
 		bemenu+=("--index" "4")
+	elif [[ "$mode" == "lyrics" ]]; then
+		local time line index
+		time=$(printf %s "$1" | /usr/bin/sed -nr '/^\[[0-9]/ s/^[.+[^0-9]([0-9]{1,3}\.[0-9]{3})\].*/\1/p')
+		if [[ -n "$time" ]]; then
+			"${mpc[@]}" seek "${time%%\.[0-9]*}"
+			line=$(exiftool -SynchronizedLyricsText-xxx -q -b "${library_path}/$("${mpc[@]}" current -f '%file%')" |
+				grep -n -- "${time}]" | cut -f1 -d:)
+			index=$(("$header_lines" + "$line"))
+			bemenu+=("--index" "$index")
+		else
+			mode="queue"
+			bemenu+=("--index" "$line_after_header")
+		fi
 	fi
 }
 
@@ -100,6 +140,9 @@ newmode() {
 		bemenu+=("--index" "$line_after_header")
 		libmode="albumartist"
 		albumartist=""
+	elif [[ "$1" =~ ^󰯂 ]]; then
+		mode="lyrics"
+		bemenu+=("--index" "4")
 	else
 		false
 	fi
