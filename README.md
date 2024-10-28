@@ -77,7 +77,10 @@ You can also source your custom XDG user directories in your `.profile`,
 `.xsession` or `.bashrc` files:
 
 ```bash
-source ${HOME}/.config/user-dirs.dirs;
+# set -a to export the sourced variables
+set -a
+. ${HOME}/.config/user-dirs.dirs
+set +a
 ```
 
 ### Integrations
