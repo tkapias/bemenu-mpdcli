@@ -45,11 +45,11 @@ header() {
 	local current
 	current=$("${mpc[@]}" current -f '[%title%|%file%][ (%albumartist%)]')
 	[[ -n "$current" ]] && current=": $current"
-	echo -e "󰐎 Play/Pause$current\n󰓛 Stop\n󰒮 Previous\n󰒭 Next"
-	[[ "$mode" == "queue" ]] && echo -e "󰲸 Playlists\n󰌱 Library\n󰯂 Lyrics"
-	[[ "$mode" == "playlists" ]] && echo -e "󰐑 Queue\n󰌱 Library\n󰯂 Lyrics"
-	[[ "$mode" == "library" ]] && echo -e "󰐑 Queue\n󰲸 Playlists\n󰯂 Lyrics"
-	[[ "$mode" == "lyrics" ]] && echo -e "󰐑 Queue\n󰲸 Playlists\n󰌱 Library"
+	/usr/bin/echo -e "󰐎 Play/Pause$current\n󰓛 Stop\n󰒮 Previous\n󰒭 Next"
+	[[ "$mode" == "queue" ]] && /usr/bin/echo -e "󰲸 Playlists\n󰌱 Library\n󰯂 Lyrics"
+	[[ "$mode" == "playlists" ]] && /usr/bin/echo -e "󰐑 Queue\n󰌱 Library\n󰯂 Lyrics"
+	[[ "$mode" == "library" ]] && /usr/bin/echo -e "󰐑 Queue\n󰲸 Playlists\n󰯂 Lyrics"
+	[[ "$mode" == "lyrics" ]] && /usr/bin/echo -e "󰐑 Queue\n󰲸 Playlists\n󰌱 Library"
 }
 
 # append a list from mpc depending on the mode
@@ -59,31 +59,31 @@ list() {
 		"${mpc[@]}" playlist -f '%position%\t[%title%|%file%][\t(%albumartist% - %album%)]' |
 			column --table --separator $'\t' --output-separator $'\t'
 	elif [[ "$mode" == "playlists" ]]; then
-		"${mpc[@]}" lsplaylists | awk 'NF' | sort -fu
+		"${mpc[@]}" lsplaylists | /usr/bin/awk 'NF' | sort -fu
 	elif [[ "$mode" == "library" ]] && [[ "$libmode" == "albumartist" ]]; then
-		"${mpc[@]}" list albumartist | awk 'NF' | sort -fu
+		"${mpc[@]}" list albumartist | /usr/bin/awk 'NF' | sort -fu
 	elif [[ "$mode" == "library" ]] && [[ "$libmode" == "album" ]]; then
-		"${mpc[@]}" list album albumartist "$albumartist" | awk 'NF' | sort -fu
+		"${mpc[@]}" list album albumartist "$albumartist" | /usr/bin/awk 'NF' | sort -fu
 	elif [[ "$mode" == "lyrics" ]]; then
 		local current lyrics
 		current="${library_path}/$("${mpc[@]}" current -f '%file%')"
 		# shellcheck disable=SC2016
-		[[ -f "$current" ]] && lyrics=$(exiftool -if '$SynchronizedLyricsText-xxx' -SynchronizedLyricsText-xxx -q -b "$current")
+		[[ -f "$current" ]] && lyrics=$(/usr/bin/exiftool -if '$SynchronizedLyricsText-xxx' -SynchronizedLyricsText-xxx -q -b "$current")
 		if [[ -n "$lyrics" ]] && [[ -f "$current" ]]; then
-			paste \
-				<(printf %s "$lyrics" | sed -r 's/^(\[[0-9\.]*\])(.*)$/\1/') \
-				<(printf %s "$lyrics" | sed 's/^\[[0-9\.]*\]//') |
-				column --table --separator $'\t'
+			/usr/bin/paste \
+				<(/usr/bin/printf %s "$lyrics" | /usr/bin/sed -r 's/^(\[[0-9\.]*\])(.*)$/\1/') \
+				<(/usr/bin/printf %s "$lyrics" | /usr/bin/sed 's/^\[[0-9\.]*\]//') |
+				/usr/bin/column --table --separator $'\t'
 		elif [[ -f "$current" ]]; then
 			# shellcheck disable=SC2016
-			lyrics=$(exiftool -if '$Lyrics-xxx' -Lyrics-xxx -q -b "$current" | tr -d '\r')
+			lyrics=$(/usr/bin/exiftool -if '$Lyrics-xxx' -Lyrics-xxx -q -b "$current" | /usr/bin/tr -d '\r')
 			if [[ -n "$lyrics" ]]; then
-				printf '%s' "$lyrics"
+				/usr/bin/printf '%s' "$lyrics"
 			else
-				printf '%s' "󰌑 No Lyrics found in the file."
+				/usr/bin/printf '%s' "󰌑 No Lyrics found in the file."
 			fi
 		else
-			printf '%s' "󰌑 No file to extract Lyrics."
+			/usr/bin/printf '%s' "󰌑 No file to extract Lyrics."
 		fi
 	fi
 }
@@ -113,11 +113,11 @@ list_action() {
 		bemenu+=("--index" "4")
 	elif [[ "$mode" == "lyrics" ]]; then
 		local time line index
-		time=$(printf %s "$1" | /usr/bin/sed -nr '/^\[[0-9]/ s/^[.+[^0-9]([0-9]{1,3}\.[0-9]{3})\].*/\1/p')
+		time=$(/usr/bin/printf %s "$1" | /usr/bin/sed -nr '/^\[[0-9]/ s/^[.+[^0-9]([0-9]{1,3}\.[0-9]{3})\].*/\1/p')
 		if [[ -n "$time" ]]; then
 			"${mpc[@]}" seek "${time%%\.[0-9]*}"
 			line=$(exiftool -SynchronizedLyricsText-xxx -q -b "${library_path}/$("${mpc[@]}" current -f '%file%')" |
-				grep -n -- "${time}]" | cut -f1 -d:)
+				/usr/bin/grep -n -- "${time}]" | /usr/bin/cut -f1 -d:)
 			index=$(("$header_lines" + "$line"))
 			bemenu+=("--index" "$index")
 		else
@@ -164,7 +164,7 @@ operation() {
 }
 
 while
-	input=$(list | "${bemenu[@]}" -p "󰎆 MPD ${mode^}$([[ $albumartist ]] && echo ": ${albumartist}")")
+	input=$(list | "${bemenu[@]}" -p "󰎆 MPD ${mode^}$([[ $albumartist ]] && /usr/bin/echo ": ${albumartist}")")
 	[[ -n "$input" ]] # exit if bemenu quit
 do
 	bemenu=(bemenu) # reset to default --index=0
