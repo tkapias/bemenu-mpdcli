@@ -15,6 +15,7 @@ The preview uses my wrapper for bemenu: [bemenu-orange-wrapper](https://github.c
 - [Nerd Fonts (Symbols Only)](https://github.com/ryanoasis/nerd-fonts/releases/latest)
 - Bash >= 5
 - Awk
+- exiftool
 
 ### Optional
 
@@ -48,6 +49,11 @@ ln -s $PWD/bemenu-mpdcli.sh $HOME/.local/bin/bemenu-mpdcli
   - List albumartist.
   - List albums for a selected albumartist.
   - Replace queue with an album and play it.
+- Lyrics:
+  - Display lyrics included in current song's file.
+  - Parse SynchronizedLyricsText-xxx or Lyrics-xxx tags.
+  - Prefer Synchronized Lyrics if available.
+  - Seek position in current song from a line in Synchronized Lyrics.
 
 ## Usage
 
@@ -56,7 +62,22 @@ bemenu-mpdcli shoould work out of the box for a local mpd server.
 You can also provide arguments to mpc for custom locations.
 
 ```bash
-bemenu-mpdcli [--host ip/socket] [--port num] [--partition name]
+[MPD_LIBRARY_PATH=$HOME/Music] bemenu-mpdcli [--host ip/socket] [--port num] [--partition name]
+```
+
+### Lyrics
+
+For the lyrics extraction to work, you need exiftool and a way for
+bemenu-mpdcli to locate the root folder of the MPD library.
+You can declare the path to this folder as the env variable
+`MPD_LIBRARY_PATH` or let it use XDG_MUSIC_DIR by default if it's defined
+by your session manager.
+
+You can also source your custom XDG user directories in your `.profile`,
+`.xsession` or `.bashrc` files:
+
+```bash
+source ${HOME}/.config/user-dirs.dirs;
 ```
 
 ### Integrations
