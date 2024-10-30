@@ -43,7 +43,7 @@ header_lines=6
 line_after_header=$(("$header_lines" + 1))
 header() {
 	local current
-	current=$("${mpc[@]}" current -f '[%title%|%file%][ (%albumartist%)]')
+	current=$("${mpc[@]}" current -f '[%title%|%name%|%file%][ (%albumartist%)]')
 	[[ -n "$current" ]] && current=": $current"
 	/usr/bin/echo -e "󰐎 Play/Pause$current\n󰓛 Stop\n󰒮 Previous\n󰒭 Next"
 	[[ "$mode" == "queue" ]] && /usr/bin/echo -e "󰲸 Playlists\n󰌱 Library\n󰯂 Lyrics"
@@ -56,7 +56,7 @@ header() {
 list() {
 	header
 	if [[ "$mode" == "queue" ]]; then
-		"${mpc[@]}" playlist -f '%position%\t[%title%|%file%][\t(%albumartist% - %album%)]' |
+		"${mpc[@]}" playlist -f '%position%\t[%title%|%name%|%file%][\t(%albumartist% - %album%)]' |
 			column --table --separator $'\t' --output-separator $'\t'
 	elif [[ "$mode" == "playlists" ]]; then
 		"${mpc[@]}" lsplaylists | /usr/bin/awk 'NF' | sort -fu
