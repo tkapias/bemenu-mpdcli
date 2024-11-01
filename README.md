@@ -11,10 +11,10 @@ The preview uses my wrapper for bemenu: [bemenu-orange-wrapper](https://github.c
 - [MPD](https://github.com/MusicPlayerDaemon/MPD)
 - [mpc](https://github.com/MusicPlayerDaemon/mpc)
 - [bemenu >= 0.6](https://github.com/Cloudef/bemenu)
-- [xclip](https://github.com/astrand/xclip)
 - [Nerd Fonts (Symbols Only)](https://github.com/ryanoasis/nerd-fonts/releases/latest)
 - Bash >= 5
-- Awk
+- Gnu awk
+- xclip
 - exiftool
 
 ### Optional
@@ -23,16 +23,31 @@ The preview uses my wrapper for bemenu: [bemenu-orange-wrapper](https://github.c
 
 ## Installation
 
+### Dependencies
+
+- Debian example with [bemenu-orange-wrapper](https://github.com/tkapias/bemenu-orange-wrapper):
+
+1. Follow [bemenu-orange-wrapper instructions](https://github.com/tkapias/bemenu-orange-wrapper?tab=readme-ov-file#installation).
+
+2. Next:
+
+``` bash
+# GNU awk, exiftool, xclip, mpd, mpc
+sudo apt install gawk libimage-exiftool-perl xclip mpd mpdris2 mpc
+```
+
+### bemenu-mpdcli
+
 ```bash
-git clone --depth 0 https://github.com/tkapias/bemenu-mpdcli.git bemenu-mpdcli
+git clone --depth 1 https://github.com/tkapias/bemenu-mpdcli.git bemenu-mpdcli
 cd bemenu-mpdcli
-chmod +x bemenu-mpdcli.sh
+chmod +x bemenu-mpdcli.bash
 ```
 
 - Optional: Symlink to a directory in your user's path:
 
 ```bash
-ln -s $PWD/bemenu-mpdcli.sh $HOME/.local/bin/bemenu-mpdcli
+ln -s $PWD/bemenu-mpdcli.bash $HOME/.local/bin/bemenu-mpdcli
 ```
 
 ## Features
